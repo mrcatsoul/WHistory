@@ -375,22 +375,26 @@ local options =
 function f:ADDON_LOADED(...) 
   if arg1~=ADDON_NAME then return end
   
-  history=mrcatsoul_WHistory or {}
-  cfg=mrcatsoul_WHistory_Config or {}
-  
   if mrcatsoul_WHistory == nil then 
-    mrcatsoul_WHistory = history
-    --history=mrcatsoul_WHistory
+    mrcatsoul_WHistory = {}
   end
   
+  if mrcatsoul_WHistory[UnitName("player").." ~ "..GetRealmName()] == nil then
+    mrcatsoul_WHistory[UnitName("player").." ~ "..GetRealmName()] = {}
+  end
+  
+  history = mrcatsoul_WHistory[UnitName("player").." ~ "..GetRealmName()]
+
   if mrcatsoul_WHistory_Config == nil then
-    mrcatsoul_WHistory_Config = cfg
-    --cfg=mrcatsoul_WHistory_Config
+    mrcatsoul_WHistory_Config = {}
+    cfg=mrcatsoul_WHistory_Config
     for _,v in ipairs(options) do
       cfg[v[1]]=v[3]
     end
     _print("Инициализация дефолтного конфига. Об аддоне:", LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"Notes-ruRU") or GetAddOnMetadata(ADDON_NAME,"Notes"))
   end
+  
+  cfg=mrcatsoul_WHistory_Config
   
   _print("Аддон загружен. Всего сохранено личных сообщений: "..#history..". Настройки: "..ChatLink("Настройки (ТЫК)","Settings").."")
 end
@@ -520,7 +524,8 @@ do
     --GameTooltip:Show()
     if resetCount >= 5 then
       resetCount=0
-      history={}
+      table.wipe(history)
+      --mrcatsoul_WHistory[UnitName("player")..", "..GetRealmName()]=history
       --mrcatsoul_WHistory={}
       _G[ADDON_NAME.."_frame"]:PrintHistoryToChat()
       GameTooltip:SetText("История пм очищена.")
