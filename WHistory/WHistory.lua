@@ -5,14 +5,17 @@ local ADDON_NAME_LOCALE_SHORT = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"
 local ADDON_NAME_LOCALE = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"Title-ruRU") or GetAddOnMetadata(ADDON_NAME,"Title")
 local ADDON_NOTES = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"Notes-ruRU") or GetAddOnMetadata(ADDON_NAME,"Notes")
 
-local f=CreateFrame("frame")
+local f=CreateFrame("frame",ADDON_NAME.."_frame")
 f:RegisterEvent("CHAT_MSG_WHISPER")
 f:RegisterEvent("CHAT_MSG_WHISPER_INFORM")
+f:RegisterEvent("UPDATE_CHAT_COLOR")
 f:RegisterEvent("ADDON_LOADED")
 f:RegisterEvent("PLAYER_LOGIN")
 f:SetScript("OnEvent", function(self, event, ...) return self[event](self, ...) end)
 
-local history,cfg={},{}
+local history,cfg,isCurrentSessionMsg={},{},{}
+local UPDATE_CHAT_COLOR_Time=0
+local isPrinting
 
 local YOU_WHISPER_TO = LOCALE=="ruRU" and "Вы шепчете" or "To"
 local WHISPERS = LOCALE=="ruRU" and "шепчет" or "whispers"
@@ -111,17 +114,47 @@ local function func_frameAddMessage(msg, windowName, r, g, b, _fontSize)
 end
 
 local classColors = {
-  ["DEATHKNIGHT"] = "C41F3B",
-  ["DRUID"] = "FF7D0A",
-  ["HUNTER"] = "A9D271",
-  ["MAGE"] = "40C7EB",
-  ["PALADIN"] = "F58CBA",
-  ["PRIEST"] = "FFFFFF",
-  ["ROGUE"] = "FFF569",
-  ["SHAMAN"] = "0070DE",
-  ["WARLOCK"] = "8787ED",
-  ["WARRIOR"] = "C79C6E",
-  ["UNKNOWN"] = "999999",
+  ["DEATHKNIGHT"] = "C41F3B", -- 1
+  ["DRUID"] = "FF7D0A",       -- 2
+  ["HUNTER"] = "A9D271",      -- 3
+  ["MAGE"] = "40C7EB",        -- 4
+  ["PALADIN"] = "F58CBA",     -- 5
+  ["PRIEST"] = "FFFFFF",      -- 6
+  ["ROGUE"] = "FFF569",       -- 7
+  ["SHAMAN"] = "0070DE",      -- 8
+  ["WARLOCK"] = "8787ED",     -- 9
+  ["WARRIOR"] = "C79C6E",     -- 10
+  ["UNKNOWN"] = "999999",     -- 11
+}
+
+local NumberToClass = 
+{
+  [1] = "DEATHKNIGHT",
+  [2] = "DRUID",
+  [3] = "HUNTER",
+  [4] = "MAGE",
+  [5] = "PALADIN",
+  [6] = "PRIEST",
+  [7] = "ROGUE",
+  [8] = "SHAMAN",
+  [9] = "WARLOCK",
+  [10] = "WARRIOR",
+  [11] = "UNKNOWN",
+}
+
+local ClassToNumber = 
+{
+  ["DEATHKNIGHT"]=1,
+  ["DRUID"]=2,
+  ["HUNTER"]=3,
+  ["MAGE"]=4,
+  ["PALADIN"]=5,
+  ["PRIEST"]=6,
+  ["ROGUE"]=7,
+  ["SHAMAN"]=8,
+  ["WARLOCK"]=9,
+  ["WARRIOR"]=10,
+  ["UNKNOWN"]=11,
 }
 
 -- local function desaturateColor(r, g, b, factor)
@@ -158,108 +191,110 @@ local function PlayerHyperLink(name)
   return "|Hplayer:"..name.."|h"..name.."|h"
 end
 
-function f:SaveMessage(FromOrTo,...)
+function f:SaveMessage(isFrom,...)
   local msg, nameRealm, _, _, name, status, _, _, _, _, _, guid = ... 
   local class = select(2,GetPlayerInfoByGUID(guid))
   nameRealm = nameRealm or "UNKNOWN"
   --local realm = nameRealm and nameRealm:match("-(.+)")) or select(7,GetPlayerInfoByGUID(guid))
-  --history[num] = { FromOrTo = FromOrTo, time = "|cff777777["..date("%H:%M:%S", time()).."]|r [|cff"..classColors[class]..""..PlayerHyperLink(nameRealm).."|r]: "..text.."" }
-  history[#history+1] = 
+  --history[num] = { isFrom = isFrom, time = "|cff777777["..date("%H:%M:%S", time()).."]|r [|cff"..classColors[class]..""..PlayerHyperLink(nameRealm).."|r]: "..text.."" }
+  local index = #history+1
+  history[index] = 
   { 
-    FromOrTo = FromOrTo,
-    date = date("%d.%m.%y"), 
-    time = date("%H:%M:%S", time()), 
-    nameRealm = nameRealm or "UNKNOWN", 
-    class = class or "UNKNOWN", 
-    guid = guid or "UNKNOWN",
+    isFrom, -- true == входящее мсг; false == исходящее
+    date("%d.%m.%y"), 
+    date("%H:%M:%S", time()), 
+    nameRealm or "UNKNOWN", 
+    class and ClassToNumber[class] or ClassToNumber["UNKNOWN"], 
+    --guid = guid or "UNKNOWN",
     --realm = 
-    msg = msg or "",
+    msg or "",
   }
+  isCurrentSessionMsg[index]=true
+  if GetCVar("showTimestamps")=="none" then
+    f:PrintHistoryToChat()
+  end
   --print("msg saved",nameRealm)
 end
 
+function f:UPDATE_CHAT_COLOR(...)
+  local t=GetTime()
+  if UPDATE_CHAT_COLOR_Time>=(t-1) then return end
+  --print("UPDATE_CHAT_COLOR_Time")
+  UPDATE_CHAT_COLOR_Time = t
+  f:PrintHistoryToChat(delay)
+end
+
 function f:CHAT_MSG_WHISPER(...)
-  f:SaveMessage("from",...)
+  f:SaveMessage(true,...)
 end
 
 function f:CHAT_MSG_WHISPER_INFORM(...)
-  f:SaveMessage("to",...)
+  f:SaveMessage(false,...)
 end
 
 local testTime, testDate = date("%H:%M:%S", time()), date("%d.%m.%y")
 
 local testMsgs =
 {
-  [1] = { FromOrTo = "from", date = testDate, time = testTime, nameRealm = "Энайэсти-x100", class = "DEATHKNIGHT", msg = "Приветики бро, го бг" },
-  [2] = { FromOrTo = "from", date = testDate, time = testTime, nameRealm = "Qp", class = "HUNTER", msg = "Я Зеленая Залупка МУУУУУУУ" },
-  [3] = { FromOrTo = "from", date = testDate, time = testTime, nameRealm = "Луздетка-x100500", class = "PALADIN", msg = "Я пусси не кидающий боп хачу в вашу ги" },
-  [4] = { FromOrTo = "from", date = testDate, time = testTime, nameRealm = "Моча-x1", class = "ROGUE", msg = "А я просто моча не чекающая точки" },
-  [5] = { FromOrTo = "from", date = testDate, time = testTime, nameRealm = "Гром", class = "DEATHKNIGHT", msg = "Величайший в деле" },
-  [6] = { FromOrTo = "from", date = testDate, time = testTime, nameRealm = "Эледрон", class = "PALADIN", msg = "вам что скучно там?" },
-  [7] = { FromOrTo = "from", date = testDate, time = testTime, nameRealm = "Vrumm-Fun", class = "MAGE", msg = "Сорри бро, я думал ты скриптовый, го бг с Аспин, всех кливом выносить" },
-  [8] = { FromOrTo = "from", date = testDate, time = testTime, nameRealm = "Crazypenus", class = "PALADIN", msg = "ЙООООООООООООООООООООООООООООООООООООУ" },
-  [9] = { FromOrTo = "from", date = testDate, time = testTime, nameRealm = "Абблевуха", class = "DEATHKNIGHT", msg = "Я робот долбаеб я должен грипать дк ато грипать меня" },
-  [10] = { FromOrTo = "from", date = testDate, time =  testTime, nameRealm = "Skillcapped", class = "ROGUE", msg = "Амбуш в ебало, инста покрывало" },
-  [11] = { FromOrTo = "from", date = testDate, time = testTime, nameRealm = "Слезадьявола-Hell", class = "MAGE", msg = "это маусовер, понимать надо сына" },
+  [1] = { 1, testDate, testTime, "Энайэсти-x100", 1, "Приветики бро, го бг" },
+  [2] = { 1, testDate, testTime, "Qp", 3, "Я Зеленая Залупка МУУУУУУУ" },
+  [3] = { 1, testDate, testTime, "Луздетка-x100500", 5, "Я пусси не кидающий боп хачу в вашу ги" },
+  [4] = { 1, testDate, testTime, "Моча-x1", 7, "А я просто моча не чекающая точки" },
+  [5] = { 1, testDate, testTime, "Гром", 1, "Величайший в деле" },
+  [6] = { 1, testDate, testTime, "Эледрон", 5, "вам что скучно там?" },
+  [7] = { 1, testDate, testTime, "Vrumm-Fun", 4, "Сорри бро, я думал ты скриптовый, го бг с Аспин, всех кливом выносить" },
+  [8] = { 1, testDate, testTime, "Crazypenus", 5, "ЙООООООООООООООООООООООООООООООООООООУ" },
+  [9] = { 1, testDate, testTime, "Абблевуха", 1, "Я робот долбаеб я должен грипать дк ато грипать меня" },
+  [10] = { 1, testDate,  testTime, "Skillcapped", 7, "Амбуш в ебало, инста покрывало" },
+  [11] = { 1, testDate, testTime, "Слезадьявола-Hell", 4, "это маусовер, понимать надо сына" },
 }
-
--- local testMsgs =
--- {
-  -- "[W:From] [|cff"..classColors["DEATHKNIGHT"]..""..PlayerHyperLink("Энайэсти-x100").."|r]: Приветики бро, го бг",
-  -- "[W:From] [|cff"..classColors["HUNTER"]..""..PlayerHyperLink("Qp").."|r]: Я Зеленая Залупка МУУУУУУУ",
-  -- "[W:From] [|cff"..classColors["PALADIN"]..""..PlayerHyperLink("Луздетка-x100500").."|r]: Я пусси не кидающий боп хачу в вашу ги",
-  -- "[W:From] [|cff"..classColors["ROGUE"]..""..PlayerHyperLink("Моча-x1").."|r]: А я просто моча не чекающая точки",
-  -- "[W:From] [|cff"..classColors["DEATHKNIGHT"]..""..PlayerHyperLink("Гром").."|r]: Величайший в деле",
-  -- "[W:From] [|cff"..classColors["PALADIN"]..""..PlayerHyperLink("Эледрон").."|r]: вам что скучно там?",
-  -- "[W:From] [|cff"..classColors["MAGE"]..""..PlayerHyperLink("Vrumm-Fun").."|r]: Сорри бро, я думал ты скриптовый, го бг с Аспин, всех кливом выносить",
-  -- "[W:From] [|cff"..classColors["PALADIN"]..""..PlayerHyperLink("Crazypenus").."|r]: ЙООООООООООООООООООООООООООООООООООООУ",
-  -- "[W:From] [|cff"..classColors["DEATHKNIGHT"]..""..PlayerHyperLink("Абблевуха").."|r]: Я робот долбаеб я должен грипать дк ато грипать меня",
-  -- "[W:From] [|cff"..classColors["ROGUE"]..""..PlayerHyperLink("Skillcapped").."|r]: Амбуш в ебало, инста покрывало",
-  -- "[W:From] [|cff"..classColors["MAGE"]..""..PlayerHyperLink("Слезадьявола-Hell").."|r]: это маусовер, понимать надо сына",
--- }
 
 local function GetMessageFromTableData(data)
   local msg = ""
   
   local todayDate = date("%d.%m.%y")
   
-  if cfg["show_date_if_it_not_today"] and todayDate~=data.date then
-    msg = "[|cff777777"..data.date.."|r]"
+  if cfg["show_date_if_it_not_today"] and todayDate~=data[2] then
+    msg = "[|cff777777"..data[2].."|r]"
   end
   
   if cfg["show_time"] then
-    msg = msg .. "|cff777777["..data.time.."]|r"
+    msg = msg .. "|cff777777["..data[3].."]|r"
   end
   
-  local nameColoredHyperlink = "|cff"..classColors[data.class]..""..PlayerHyperLink(data.nameRealm).."|r"
+  local nameColoredHyperlink = "|cff"..classColors[NumberToClass[data[5]]]..""..PlayerHyperLink(data[4]).."|r"
   
   if IsAddOnLoaded("Chatter") then
-    if data.FromOrTo == "from" then
+    if data[1]==true then
       msg = msg .. "[W:From]"
     else
       msg = msg .. "[W:To]"
     end
     msg = msg .. " ["..nameColoredHyperlink.."]:"
   else
-    if data.FromOrTo == "from" then
-      msg = msg .. "["..nameColoredHyperlink.."] "..WHISPERS..":"
+    if data[1]==true then
+      msg = msg .. " ["..nameColoredHyperlink.."] "..WHISPERS..":"
     else
-      msg = msg .. ""..YOU_WHISPER_TO.." ["..nameColoredHyperlink.."]:"
+      msg = msg .. " "..YOU_WHISPER_TO.." ["..nameColoredHyperlink.."]:"
     end
   end
   
-  msg = msg .. " " .. data.msg
+  msg = msg .. " " .. data[6]
   
   return msg
 end
 
-local function PrintHistoryToChat(delay)
+function f:PrintHistoryToChat(delay)
   --print("PrintHistoryToChat")
+  if isPrinting then return true end
+  isPrinting=true
+  
   if not cfg["enable_addon"] then 
     local frame, found = getChatFrameByName(ADDON_NAME)
     if frame and found then
       frame:Clear()
     end
+    isPrinting=nil
     return 
   end
 
@@ -274,10 +309,11 @@ local function PrintHistoryToChat(delay)
     
     local info = ChatTypeInfo["WHISPER"]
     local r,g,b=info.r,info.g,info.b
+    local rd,gd,bd=r,g,b
     
     if cfg["desaturated_history_color"] then
-      r, g, b = desaturateColor(r, g, b, 0.8)
-      --r, g, b = brightenColor(desaturatedR, desaturatedG, desaturatedB, 2)
+      rd,gd,bd = desaturateColor(r, g, b, 0.8)
+      --rd,gd,bd = brightenColor(desaturatedR, desaturatedG, desaturatedB, 2)
     end
     
     func_frameAddMessage("test",ADDON_NAME,r,g,b)
@@ -295,13 +331,9 @@ local function PrintHistoryToChat(delay)
     end
     
     if cfg["enable_test_whisper_messages"] then
-      -- for _,msg in pairs(testMsgs) do
-        -- func_frameAddMessage(msg,ADDON_NAME,r,g,b)
-      -- end
-      
-      for _,data in ipairs(testMsgs) do
+      for index,data in ipairs(testMsgs) do
         local msg = GetMessageFromTableData(data)
-        func_frameAddMessage(msg,ADDON_NAME,r,g,b)
+        func_frameAddMessage(msg,ADDON_NAME,rd,gd,bd)
       end
       
       if frame and found and DEFAULT_CHAT_FRAME~=frame then
@@ -309,11 +341,16 @@ local function PrintHistoryToChat(delay)
       end
     end
 
-    for _,data in ipairs(history) do
+    for index,data in ipairs(history) do
       local msg = GetMessageFromTableData(data)
-      func_frameAddMessage(msg,ADDON_NAME,r,g,b)
+      if not isCurrentSessionMsg[index] and cfg["desaturated_history_color"] then
+        func_frameAddMessage(msg,ADDON_NAME,rd,gd,bd)
+      else
+        func_frameAddMessage(msg,ADDON_NAME,r,g,b)
+      end
     end
     
+    isPrinting=nil
     self:SetScript("onupdate",nil)
     self=nil
   end)
@@ -321,7 +358,7 @@ end
 
 function f:PLAYER_LOGIN()
   f:UnregisterEvent("PLAYER_LOGIN")
-  PrintHistoryToChat(2)
+  f:PrintHistoryToChat(2)
 end
 
 ------------------
@@ -355,7 +392,7 @@ function f:ADDON_LOADED(...)
     _print("Инициализация дефолтного конфига. Об аддоне:", LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"Notes-ruRU") or GetAddOnMetadata(ADDON_NAME,"Notes"))
   end
   
-  _print("Аддон загружен. Всего сохранено личных сообщений: "..#history..". Настройки: "..ChatLink("Настройки (тык)","Settings").."")
+  _print("Аддон загружен. Всего сохранено личных сообщений: "..#history..". Настройки: "..ChatLink("Настройки (ТЫК)","Settings").."")
 end
 
 -- опции\настройки\конфиг - создание фреймов
@@ -429,7 +466,7 @@ local function CreateOptionCheckbox(optionName,optionDescription,num)
 
   checkbox:SetScript("OnClick", function(self)
     cfg[optionName]=self:GetChecked() and true or false
-    PrintHistoryToChat()
+    f:PrintHistoryToChat()
   end)
 
   checkbox:SetScript("onshow", function(self)
@@ -485,10 +522,10 @@ do
       resetCount=0
       history={}
       --mrcatsoul_WHistory={}
+      _G[ADDON_NAME.."_frame"]:PrintHistoryToChat()
       GameTooltip:SetText("История пм очищена.")
       _print("История пм очищена.")
       UIFrameFlash(settingsFrame, 1.5, 0.5, 2, true, 2, 0)
-      PrintHistoryToChat()
     else
       local needCount=5-resetCount
       _print("Чтобы выполнить очистку истории нажать ещё "..needCount.." раз(а)")
