@@ -1,0 +1,16 @@
+## Interface: 30300
+
+## Title: |cff00bbeeWhisperHistory|r by |cFFC41F3BMori|r (|cff3399ffWHistory|r)
+## TitleShort: |cff3399ffWHistory|r
+
+## Title-ruRU: |cff00bbeeИстория лички|r от |cFFC41F3BMori|r (|cff3399ffWHistory|r)
+## TitleS-ruRU: |cff3399ffWHistory|r
+
+## Version: 1.0.0, 19.1.25 12:00
+
+## Notes: Whisper history in default chat window. Codework by: some random guy. GitHub/YouTube/Discord/Telegram: @mrcatsoul;|r |cFFC41F3BTombstalker|r/|cFFffffffМораль|r/|cFFC41F3BMoriarty|r~WoWCircle WotLK
+## Notes-ruRU: История лички в дефолтном чате. Работа на кодом: Рандом из лфг. GitHub/YouTube/Discord/Telegram: @mrcatsoul;|r |cFFC41F3BTombstalker|r/|cFFffffffМораль|r/|cFFC41F3BMoriarty|r~WoWCircle WotLK
+
+## SavedVariables: mrcatsoul_WHistory, mrcatsoul_WHistory_Config
+
+WHistory.lua
