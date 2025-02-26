@@ -74,7 +74,7 @@ function core:ModifyBlizzStuff()
       --end
       
       if chatTarget and chatTarget~=ADDON_NAME and tmpChatTabs[chatTarget] and not core:HasHistoryByName(chatTarget,true) then
-        _print("нет истории лички с ["..chatTarget.."], клоуз пм чат")
+        _print("нет истории диалога с ["..core:PlayerWhisperHyperLink(chatTarget).."], клоуз пм чат")
         core:CloseTmpChat(tmpChatTabs[chatTarget])
         return nil
       end
@@ -116,7 +116,11 @@ function core:ModifyBlizzStuff()
     dist = 0,
     func = function(self)
       local name = UIDROPDOWNMENU_INIT_MENU.name
-      core:PrintHistoryToChat(name,nil,true)
+      if core:HasHistoryByName(name,true) then
+        core:PrintHistoryToChat(name,nil,true)
+      else
+        _print("нет истории диалога с ["..core:PlayerWhisperHyperLink(name).."]")
+      end
     end
   }
 
@@ -126,7 +130,7 @@ function core:ModifyBlizzStuff()
     func = function(self)
       local name = UIDROPDOWNMENU_INIT_MENU.name
       if name then
-        name = PlayerWhisperHyperLink(name)
+        name = core:PlayerWhisperHyperLink(name)
         local popup = StaticPopup_Show(""..ADDON_NAME.."_DELETE_HISTORY_STATIC_POPUP", name)
         if popup then 
           popup.data = name 
@@ -287,7 +291,7 @@ end
   -- return "|Hplayer:"..name.."|h"..name.."|h"
 -- end
 
-local function PlayerWhisperHyperLink(name,classColor,addBrackets)
+function core:PlayerWhisperHyperLink(name,classColor,addBrackets)
   local link
 
   if name then
@@ -490,7 +494,7 @@ function core:GetFullMessageFromTableData(msgData,name)
   end
   
   local classColor = classColors[NumberToClass[msgData[5]]]
-  local nameColoredHyperlink = PlayerWhisperHyperLink(senderName,classColor)
+  local nameColoredHyperlink = core:PlayerWhisperHyperLink(senderName,classColor)
   --local nameColoredHyperlink = "|cff"..classColors[NumberToClass[msgData[5]]]..""..PlayerHyperLink(msgData[4]).."|r"
   
   -- тест: интеграция с чаттером
@@ -600,7 +604,7 @@ function core:PrintHistoryToChat(chatTarget,message,selectWindow,flashTab,delete
       frame:Clear()
       --frame:AddMessage("Clear()",r,g,b)
       if chatTarget~=ADDON_NAME then
-        _print("История диалога с персонажем ["..PlayerWhisperHyperLink(chatTarget).."]:",nil,nil,frame)
+        _print("История диалога с персонажем ["..core:PlayerWhisperHyperLink(chatTarget).."]:",nil,nil,frame)
       end
 
       -- test
@@ -725,7 +729,7 @@ function core:ShowHistoryTotalStats()
 
       info[name] = 
       {
-        ChatLink(PlayerWhisperHyperLink(name),"Show_History",nil,name),
+        ChatLink(core:PlayerWhisperHyperLink(name),"Show_History",nil,name),
         totalMsgs[name],
         lastMsgDate[name],
       }
