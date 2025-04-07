@@ -8,8 +8,8 @@
 
 ## Version: 1.0.5, 26.2.25 20:00
 
-## Notes: Whisper (private messages) history saver in default chat window. Codework by: some random guy. GitHub/YouTube/Discord/Telegram: @mrcatsoul;|r |cFFC41F3BTombstalker|r/|cFFffffffМораль|r/|cFFC41F3BMoriarty|r~WoWCircle WotLK
-## Notes-ruRU: История лички (пм) в дефолтном чате. Работа над кодом: Рандом из лфг. GitHub/YouTube/Discord/Telegram: @mrcatsoul;|r |cFFC41F3BTombstalker|r/|cFFffffffМораль|r/|cFFC41F3BMoriarty|r~WoWCircle WotLK
+## Notes: Whisper (private messages) history saver in default chat window. Codework by: some random guy. GitHub/YouTube/Discord/Telegram: @mrcatsoul;|r |cFFC41F3BMori(x100)|r/|cFFC41F3BMoriarty(x5)|r~WoWCircle WotLK
+## Notes-ruRU: История лички (пм) в дефолтном чате. Работа над кодом: Рандом из лфг. GitHub/YouTube/Discord/Telegram: @mrcatsoul;|r |cFFC41F3BMori(x100)|r/|cFFC41F3BMoriarty(x5)|r~WoWCircle WotLK
 
 ## SavedVariables: mrcatsoul_WHistory, mrcatsoul_WHistory_Config
 
