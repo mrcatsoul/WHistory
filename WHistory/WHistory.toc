@@ -1,12 +1,12 @@
 ## Interface: 30300
 
-## Title: |cff00bbeeWhisperHistory|r by |cFFC41F3BMori|r (|cff3399ffWHistory|r)
+## Title: _|cff00bbeeWhisperHistory|r by |cFFC41F3BMori|r (|cff3399ffWHistory|r)
 ## TitleShort: |cff3399ffWHistory|r
 
-## Title-ruRU: |cff00bbeeИстория лички|r от |cFFC41F3BMori|r (|cff3399ffWHistory|r)
+## Title-ruRU: _|cff00bbeeИстория лички|r от |cFFC41F3BMori|r (|cff3399ffWHistory|r)
 ## TitleS-ruRU: |cff3399ffWHistory|r
 
-## Version: 1.0.5, 26.2.25 20:00
+## Version: 1.0.6, 5.6.25 18:00
 
 ## Notes: Whisper (private messages) history saver in default chat window. Codework by: some random guy. GitHub/YouTube/Discord/Telegram: @mrcatsoul;|r |cFFC41F3BMori(x100)|r/|cFFC41F3BMoriarty(x5)|r~WoWCircle WotLK
 ## Notes-ruRU: История лички (пм) в дефолтном чате. Работа над кодом: Рандом из лфг. GitHub/YouTube/Discord/Telegram: @mrcatsoul;|r |cFFC41F3BMori(x100)|r/|cFFC41F3BMoriarty(x5)|r~WoWCircle WotLK
