@@ -59,7 +59,7 @@ function core:OnChangeCfg(login)
   end
   
   --if not login then
-    DelayedCall(0.001, function() 
+    core.DelayedCall(0.001, function() 
       core:PrintHistoryToChat(ADDON_NAME) -- обновление текста во вкладках при изменении конфига
     end)
   --end
