@@ -5,8 +5,8 @@ local core = ns.frame
 local LOCALE = GetLocale()
 local ADDON_NAME_LOCALE_SHORT = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"TitleS-ruRU") or GetAddOnMetadata(ADDON_NAME,"TitleShort") or ADDON_NAME
 local ADDON_NAME_LOCALE = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"Title-ruRU") or GetAddOnMetadata(ADDON_NAME,"Title") or ADDON_NAME
-local ADDON_NOTES = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"Notes-ruRU") or GetAddOnMetadata(ADDON_NAME,"Notes") or "Unknown"
-local ADDON_VERSION = GetAddOnMetadata(ADDON_NAME,"Version") or "Unknown"
+local ADDON_NOTES = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"Notes-ruRU") or GetAddOnMetadata(ADDON_NAME,"Notes") or UNKNOWN
+local ADDON_VERSION = GetAddOnMetadata(ADDON_NAME,"Version") or UNKNOWN
 
 local function _print(msg,msg2,msg3,frame)
   if frame then
@@ -17,26 +17,37 @@ local function _print(msg,msg2,msg3,frame)
 end
 core._print = _print
 
-local DelayedCallFrame = CreateFrame("Frame")  -- Создаем один фрейм для всех отложенных вызовов
-local calls = {}  -- Таблица для хранения отложенных вызовов
-
-local function OnUpdate(self, elapsed)
-  for i, call in ipairs(calls) do
-    call.time = call.time + elapsed
-    if call.time >= call.delay then
-      call.func()
-      table.remove(calls, i)  -- Удаляем вызов из списка
+-- функция отложенного вызова другой функции
+local DelayedCall
+if not DelayedCall then
+  local f = CreateFrame("Frame")  -- Создаем один фрейм для всех отложенных вызовов
+  f:Hide()  -- Изначально скрываем фрейм
+  
+  local calls = {}  -- Таблица для хранения отложенных вызовов
+  
+  local function OnUpdate(self, elapsed)
+    for i, call in ipairs(calls) do
+      call.time = call.time + elapsed
+      if call.time >= call.delay then
+        call.func()
+        tremove(calls, i)  -- Удаляем вызов из списка
+      end
     end
   end
+  
+  f:SetScript("OnUpdate", OnUpdate)
+  
+  -- Основная функция для отложенных вызовов
+  DelayedCall = function(delay, func)
+    tinsert(calls, { delay = delay, time = 0, func = func })
+    if not f:IsShown() then
+      f:Show()  -- Показываем фрейм, если еще не показан
+    end
+  end
+  
+  _G.DelayedCall = DelayedCall
+  core.DelayedCall = DelayedCall
 end
-
-DelayedCallFrame:SetScript("OnUpdate", OnUpdate)
-
--- Основная функция для отложенных вызовов
-local function DelayedCall(delay, func)
-  table.insert(calls, { delay = delay, time = 0, func = func })
-end
-core.DelayedCall = DelayedCall
 
 -- чат линк
 local function ChatLink(text,option,colorHex,chatTarget)
