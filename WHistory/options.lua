@@ -5,8 +5,8 @@ local core = ns.frame
 local LOCALE = GetLocale()
 local ADDON_NAME_LOCALE_SHORT = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"TitleS-ruRU") or GetAddOnMetadata(ADDON_NAME,"TitleShort") or ADDON_NAME
 local ADDON_NAME_LOCALE = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"Title-ruRU") or GetAddOnMetadata(ADDON_NAME,"Title") or ADDON_NAME
-local ADDON_NOTES = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"Notes-ruRU") or GetAddOnMetadata(ADDON_NAME,"Notes") or "Unknown"
-local ADDON_VERSION = GetAddOnMetadata(ADDON_NAME,"Version") or "Unknown"
+local ADDON_NOTES = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"Notes-ruRU") or GetAddOnMetadata(ADDON_NAME,"Notes") or UNKNOWN
+local ADDON_VERSION = GetAddOnMetadata(ADDON_NAME,"Version") or UNKNOWN
 
 local _print = core._print 
 local ChatLink = core.ChatLink
@@ -14,7 +14,7 @@ local ChatLink = core.ChatLink
 core:SetScript("OnEvent", function(self, event, ...) if self[event] then self[event](self, ...) end end)
 core:RegisterEvent("ADDON_LOADED")
 
-function core:GetCharacterProfileKey()
+function core:GetCharacterProfileKeyName()
   return UnitName("player").." ~ "..GetRealmName():gsub("%b[]", ""):gsub("%s+$", "")
 end
 
@@ -89,7 +89,7 @@ function core:InitCfg()
     mrcatsoul_WHistory = {}
   end
   
-  local characterProfileKey = core:GetCharacterProfileKey()
+  local characterProfileKey = core:GetCharacterProfileKeyName()
   
   if mrcatsoul_WHistory[characterProfileKey] == nil then
     mrcatsoul_WHistory[characterProfileKey] = {}
