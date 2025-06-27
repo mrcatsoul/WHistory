@@ -1,5 +1,3 @@
--- 26.2.25
-
 local ADDON_NAME, ns = ...
 if not ns.frame then ns.frame = CreateFrame("frame", ADDON_NAME.."_frame") end
 local core = ns.frame
@@ -313,7 +311,7 @@ function core:OnNewMessage(isFrom,...)
   if not cfg["enable_addon"] or not core.historyLoaded then return end
   --print("OnNewMessage",isFrom)
   local msg, nameRealm, _, _, name, status, _, _, _, _, _, guid = ... 
-  local class = select(2,GetPlayerInfoByGUID(guid))
+  local class = guid and guid ~= "" and select(2,GetPlayerInfoByGUID(guid)) or "UNKNOWN"
   nameRealm = nameRealm or "UNKNOWN"
   --local realm = nameRealm and nameRealm:match("-(.+)")) or select(7,GetPlayerInfoByGUID(guid))
   --history[num] = { isFrom = isFrom, time = "|cff777777["..date("%H:%M:%S", time()).."]|r [|cff"..classColors[class]..""..PlayerHyperLink(nameRealm).."|r]: "..text.."" }
