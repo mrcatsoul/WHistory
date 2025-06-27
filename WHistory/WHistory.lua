@@ -6,7 +6,7 @@ local LOCALE = GetLocale()
 local ADDON_NAME_LOCALE_SHORT = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"TitleS-ruRU") or GetAddOnMetadata(ADDON_NAME,"TitleShort")
 local ADDON_NAME_LOCALE = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"Title-ruRU") or GetAddOnMetadata(ADDON_NAME,"Title")
 local ADDON_NOTES = LOCALE=="ruRU" and GetAddOnMetadata(ADDON_NAME,"Notes-ruRU") or GetAddOnMetadata(ADDON_NAME,"Notes")
-local ADDON_VERSION = GetAddOnMetadata(ADDON_NAME,"Version") or "Unknown"
+local ADDON_VERSION = GetAddOnMetadata(ADDON_NAME,"Version") or UNKNOWN
 
 local currentSessionMsgs,tmpChatTabs,isPrinting={},{},{}
 local UPDATE_CHAT_COLOR_Time=0
